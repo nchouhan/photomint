@@ -123,5 +123,9 @@ Integrate watermark encode/decode microservice.
 Proofs vs prevention: Blockchain guarantees verifiability (ownership history), not copy prevention.
 Watermarking + pHash + signature together make fraud detection practical.
 Keep private keys safe — creator signatures are your strongest evidence.
-📜 License
-MIT. Free to adapt, extend, and integrate into your own photo authenticity or NFT platforms.
+## 📜 License
+
+Copyright © 2025 Genupic. All rights reserved.  
+
+This project and its source code are **proprietary**.  
+You may **not use, copy, modify, distribute, or integrate** this code, in whole or in part, without **prior written permission** from the author(s).  
