@@ -1,9 +1,10 @@
 // Script to fund your MetaMask account with test ETH
-const { ethers } = require("hardhat");
+import hre from "hardhat";
+const { ethers } = hre;
 
 async function main() {
   // Replace with your MetaMask address
-  const metamaskAddress = "PASTE_YOUR_METAMASK_ADDRESS_HERE";
+  const metamaskAddress = "0x984048A0Ba7a690D2382C397d5bcA33B77D500Ec";
   
   if (metamaskAddress === "PASTE_YOUR_METAMASK_ADDRESS_HERE") {
     console.log("❌ Please replace the address in the script first!");

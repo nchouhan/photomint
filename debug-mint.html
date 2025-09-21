@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoMint Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; }
+        .log { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+    </style>
+</head>
+<body>
+    <h1>PhotoMint Debug Tool</h1>
+    
+    <div>
+        <button onclick="checkMetaMask()">1. Check MetaMask</button>
+        <button onclick="connectWallet()">2. Connect Wallet</button>
+        <button onclick="checkNetwork()">3. Check Network</button>
+        <button onclick="testContract()">4. Test Contract</button>
+        <button onclick="testImageServer()">5. Test Image Server</button>
+        <button onclick="testWatermarkService()">6. Test Watermark Service</button>
+    </div>
+
+    <div id="logs"></div>
+
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <script>
+        const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+        const CONTRACT_ABI = [
+            "function name() view returns (string)",
+            "function symbol() view returns (string)",
+            "function mintWithProof(address to, bytes32 sha256Hash, bytes cidBytes, uint64 pHash, bytes signature, address creator, string tokenUri) returns (uint256)"
+        ];
+
+        let provider = null;
+        let signer = null;
+        let contract = null;
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logs.appendChild(div);
+            console.log(message);
+        }
+
+        async function checkMetaMask() {
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    log('❌ MetaMask is not installed', 'error');
+                    return false;
+                }
+                log('✅ MetaMask detected', 'success');
+                return true;
+            } catch (error) {
+                log(`❌ MetaMask check failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function connectWallet() {
+            try {
+                if (!await checkMetaMask()) return;
+
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                const accounts = await provider.send('eth_requestAccounts', []);
+                signer = provider.getSigner();
+                const account = await signer.getAddress();
+                
+                log(`✅ Wallet connected: ${account}`, 'success');
+                return true;
+            } catch (error) {
+                log(`❌ Wallet connection failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function checkNetwork() {
+            try {
+                if (!provider) {
+                    log('❌ Connect wallet first', 'error');
+                    return;
+                }
+
+                const network = await provider.getNetwork();
+                log(`📡 Network: ${network.name} (Chain ID: ${network.chainId})`);
+                
+                if (network.chainId !== 31337) {
+                    log('⚠️ Not on local Hardhat network (31337)', 'error');
+                    return false;
+                }
+                
+                log('✅ Connected to Hardhat local network', 'success');
+                return true;
+            } catch (error) {
+                log(`❌ Network check failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function testContract() {
+            try {
+                if (!signer) {
+                    log('❌ Connect wallet first', 'error');
+                    return;
+                }
+
+                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                
+                // Test contract calls
+                const name = await contract.name();
+                const symbol = await contract.symbol();
+                
+                log(`✅ Contract connected: ${name} (${symbol})`, 'success');
+                log(`📄 Contract address: ${CONTRACT_ADDRESS}`);
+                return true;
+            } catch (error) {
+                log(`❌ Contract test failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function testImageServer() {
+            try {
+                const response = await fetch('http://localhost:3001/health');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                log(`✅ Image server: ${data.status}`, 'success');
+                return true;
+            } catch (error) {
+                log(`❌ Image server test failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function testWatermarkService() {
+            try {
+                const response = await fetch('http://localhost:5001/health');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                log(`✅ Watermark service: ${data.status}`, 'success');
+                return true;
+            } catch (error) {
+                log(`❌ Watermark service test failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Auto-run basic checks
+        window.addEventListener('load', async () => {
+            log('🚀 Starting PhotoMint debug session...');
+            await checkMetaMask();
+        });
+    </script>
+</body>
+</html>
