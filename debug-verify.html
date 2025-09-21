@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoMint Verification Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; }
+        .log { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>PhotoMint Verification Debug Tool</h1>
+    
+    <div>
+        <input type="number" id="tokenId" placeholder="Token ID" value="4">
+        <button onclick="testTokenVerification()">Test Token Verification</button>
+        <button onclick="checkAllTokens()">Check All Tokens</button>
+    </div>
+
+    <div id="logs"></div>
+
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <script>
+        const CONTRACT_ADDRESS = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
+        const CONTRACT_ABI = [
+            "function photos(uint256 tokenId) view returns (bytes32 sha256Hash, bytes cidBytes, uint64 pHash, address creator, string tokenURI)",
+            "function ownerOf(uint256 tokenId) view returns (address)"
+        ];
+
+        let provider = null;
+        let contract = null;
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logs.appendChild(div);
+            console.log(message);
+        }
+
+        async function init() {
+            if (typeof window.ethereum === 'undefined') {
+                log('❌ MetaMask not found', 'error');
+                return;
+            }
+
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+            log('✅ Contract connected', 'success');
+        }
+
+        async function testTokenVerification() {
+            const tokenId = document.getElementById('tokenId').value;
+            
+            try {
+                log(`🔍 Testing Token ID ${tokenId}...`);
+                
+                // Test photos function
+                const photo = await contract.photos(tokenId);
+                log(`📸 Photo data retrieved:`, 'success');
+                log(`  - SHA256: ${photo.sha256Hash}`);
+                log(`  - Creator: ${photo.creator}`);
+                log(`  - TokenURI: ${photo.tokenURI}`);
+                
+                // Decode CID bytes
+                const cidString = new TextDecoder().decode(photo.cidBytes);
+                log(`  - CID String: ${cidString}`);
+                
+                // Check if creator is zero address
+                if (photo.creator === '0x0000000000000000000000000000000000000000') {
+                    log('❌ Creator is zero address - token does not exist', 'error');
+                    return;
+                } else {
+                    log('✅ Creator is valid - token exists', 'success');
+                }
+                
+                // Test ownerOf function
+                const owner = await contract.ownerOf(tokenId);
+                log(`👤 Owner: ${owner}`);
+                
+                log(`✅ Token ID ${tokenId} verification successful!`, 'success');
+                
+            } catch (error) {
+                log(`❌ Token verification failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkAllTokens() {
+            log('🔍 Checking all tokens 1-10...');
+            
+            for (let i = 1; i <= 10; i++) {
+                try {
+                    const photo = await contract.photos(i);
+                    if (photo.creator !== '0x0000000000000000000000000000000000000000') {
+                        const cidString = new TextDecoder().decode(photo.cidBytes);
+                        const owner = await contract.ownerOf(i);
+                        log(`✅ Token ${i}: ${cidString} (Owner: ${owner})`, 'success');
+                    } else {
+                        log(`❌ Token ${i}: Does not exist`, 'error');
+                    }
+                } catch (error) {
+                    log(`❌ Token ${i}: Error - ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Auto-init
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

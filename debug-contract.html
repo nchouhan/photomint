@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contract Debug Test</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+</head>
+<body>
+    <h1>Contract Debug Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        async function testContract() {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                // Check if MetaMask is available
+                if (typeof window.ethereum === 'undefined') {
+                    resultsDiv.innerHTML = '<p style="color: red;">MetaMask not found!</p>';
+                    return;
+                }
+                
+                // Connect to MetaMask
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const signer = provider.getSigner();
+                const address = await signer.getAddress();
+                
+                resultsDiv.innerHTML += `<p>Connected to: ${address}</p>`;
+                
+                // Contract ABI
+                const contractABI = [
+                    "function photos(uint256 tokenId) view returns (bytes32 sha256Hash, bytes cidBytes, uint64 pHash, address creator, string tokenURI)",
+                    "function ownerOf(uint256 tokenId) view returns (address)",
+                    "function name() view returns (string)",
+                    "function symbol() view returns (string)"
+                ];
+                
+                const contractAddress = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
+                const contract = new ethers.Contract(contractAddress, contractABI, signer);
+                
+                resultsDiv.innerHTML += `<p>Contract address: ${contractAddress}</p>`;
+                
+                // Test contract name
+                const name = await contract.name();
+                resultsDiv.innerHTML += `<p>Contract name: ${name}</p>`;
+                
+                // Test ownerOf for token 4
+                const owner = await contract.ownerOf(4);
+                resultsDiv.innerHTML += `<p>Token 4 owner: ${owner}</p>`;
+                
+                // Test photos for token 4
+                const photo = await contract.photos(4);
+                resultsDiv.innerHTML += `<p>Token 4 photo data:</p>`;
+                resultsDiv.innerHTML += `<pre>${JSON.stringify(photo, null, 2)}</pre>`;
+                
+                // Check creator
+                resultsDiv.innerHTML += `<p>Creator: ${photo.creator}</p>`;
+                resultsDiv.innerHTML += `<p>Creator type: ${typeof photo.creator}</p>`;
+                resultsDiv.innerHTML += `<p>Creator === zero address: ${photo.creator === '0x0000000000000000000000000000000000000000'}</p>`;
+                
+                // Decode CID bytes
+                const cidString = ethers.utils.toUtf8String(photo.cidBytes);
+                resultsDiv.innerHTML += `<p>CID String: ${cidString}</p>`;
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `<p style="color: red;">Error: ${error.message}</p>`;
+                console.error('Error:', error);
+            }
+        }
+        
+        // Auto-run when page loads
+        window.addEventListener('load', testContract);
+    </script>
+</body>
+</html>
