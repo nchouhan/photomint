@@ -1,46 +1,28 @@
 {
   "version": 2,
   "name": "photomint",
-  "builds": [
+  "buildCommand": "npm run vercel-build",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "npm install",
+  "rewrites": [
     {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "frontend/dist"
-      }
+      "source": "/api/images/(.*)",
+      "destination": "/api/images"
     },
     {
-      "src": "image-server.cjs",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "watermark-service/watermark_server.py",
-      "use": "@vercel/python"
+      "source": "/api/watermark/(.*)",
+      "destination": "/api/watermark"
     }
   ],
-  "routes": [
+  "headers": [
     {
-      "src": "/api/images/(.*)",
-      "dest": "/image-server.cjs"
-    },
-    {
-      "src": "/api/watermark/(.*)",
-      "dest": "/watermark-service/watermark_server.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/dist/$1"
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "script-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:; object-src 'none';"
+        }
+      ]
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "functions": {
-    "image-server.cjs": {
-      "maxDuration": 30
-    },
-    "watermark-service/watermark_server.py": {
-      "maxDuration": 30
-    }
-  }
+  ]
 }

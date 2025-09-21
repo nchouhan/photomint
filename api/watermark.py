@@ -5,7 +5,6 @@ import io
 import os
 from PIL import Image
 import numpy as np
-import cv2
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -186,9 +185,13 @@ def verify_watermark_endpoint():
     except Exception as e:
         return jsonify({'error': f'Server error: {str(e)}'}), 500
 
-# Vercel serverless function handler
-def handler(request):
-    return app(request.environ, lambda status, headers: None)
+# Main route handler for Vercel
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def catch_all(path):
+    if request.method == 'GET' and path == '':
+        return health_check()
+    return jsonify({'error': 'Not found'}), 404
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
