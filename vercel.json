@@ -1,0 +1,46 @@
+{
+  "version": 2,
+  "name": "photomint",
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "frontend/dist"
+      }
+    },
+    {
+      "src": "image-server.cjs",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "watermark-service/watermark_server.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/images/(.*)",
+      "dest": "/image-server.cjs"
+    },
+    {
+      "src": "/api/watermark/(.*)",
+      "dest": "/watermark-service/watermark_server.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/dist/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "image-server.cjs": {
+      "maxDuration": 30
+    },
+    "watermark-service/watermark_server.py": {
+      "maxDuration": 30
+    }
+  }
+}

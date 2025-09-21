@@ -14,7 +14,7 @@ const PHOTOMINT_ABI = [
   "event Minted(uint256 indexed tokenId, address indexed to, address indexed creator, bytes32 sha256Hash, bytes cidBytes, uint64 pHash)"
 ]
 
-const CONTRACT_ADDRESS = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0" // Update with your deployed contract
+const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
 
 interface Web3ContextType {
   account: string | null

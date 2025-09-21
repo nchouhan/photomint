@@ -1,8 +1,8 @@
 flask==3.1.2
-flask-cors==6.0.1
+Flask-Cors==4.0.1
 opencv-python==4.12.0.88
-pillow==11.3.0
 numpy==2.2.6
-requests==2.32.5
+Pillow==11.3.0
+imwatermark==0.1.0
 python-dotenv==1.1.1
-invisible-watermark==0.2.0
+requests==2.32.5
