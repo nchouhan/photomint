@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSP Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.1);
+        }
+        .success { background-color: rgba(76, 175, 80, 0.3); }
+        .error { background-color: rgba(244, 67, 54, 0.3); }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background: #2196F3;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 CSP & JavaScript Test Page</h1>
+    <p>This page tests if JavaScript execution is working properly without CSP issues.</p>
+    
+    <div id="results"></div>
+    
+    <button onclick="testBasicJS()">Test Basic JavaScript</button>
+    <button onclick="testEval()">Test eval() Function</button>
+    <button onclick="testCrypto()">Test Web Crypto API</button>
+    <button onclick="testFetch()">Test Fetch API</button>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function addResult(test, success, message) {
+            const div = document.createElement('div');
+            div.className = `test-result ${success ? 'success' : 'error'}`;
+            div.innerHTML = `
+                <strong>${test}:</strong> ${success ? '✅ PASS' : '❌ FAIL'}<br>
+                <small>${message}</small>
+            `;
+            results.appendChild(div);
+        }
+        
+        function testBasicJS() {
+            try {
+                const test = "Basic JavaScript execution";
+                addResult('Basic JavaScript', true, 'JavaScript is running normally');
+            } catch (error) {
+                addResult('Basic JavaScript', false, error.message);
+            }
+        }
+        
+        function testEval() {
+            try {
+                const result = eval('2 + 2');
+                addResult('eval() Function', result === 4, `eval('2 + 2') = ${result}`);
+            } catch (error) {
+                addResult('eval() Function', false, `CSP blocked eval: ${error.message}`);
+            }
+        }
+        
+        function testCrypto() {
+            try {
+                if (crypto && crypto.subtle) {
+                    addResult('Web Crypto API', true, 'crypto.subtle is available');
+                } else {
+                    addResult('Web Crypto API', false, 'crypto.subtle not available');
+                }
+            } catch (error) {
+                addResult('Web Crypto API', false, error.message);
+            }
+        }
+        
+        async function testFetch() {
+            try {
+                const response = await fetch('http://localhost:3001/images');
+                const data = await response.json();
+                addResult('Fetch API', true, `Fetched ${data.length} images from server`);
+            } catch (error) {
+                addResult('Fetch API', false, `Fetch failed: ${error.message}`);
+            }
+        }
+        
+        // Auto-run basic tests
+        window.onload = function() {
+            testBasicJS();
+            testCrypto();
+        };
+    </script>
+</body>
+</html>
